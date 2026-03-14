@@ -1,0 +1,12 @@
+# Example sudoers policy for a "Junior Admin" role.
+# Install with visudo into /etc/sudoers.d/junior-admin after review.
+
+User_Alias JUNIOR_ADMINS = %junioradmin
+Cmnd_Alias RESTART_DEMO_APP = /bin/systemctl restart demo-app.service
+
+JUNIOR_ADMINS ALL = (root) NOPASSWD: RESTART_DEMO_APP
+
+# Important:
+# - This does not allow reading sensitive files such as /etc/shadow.
+# - This does not allow sudo shells or arbitrary commands.
+# - Exact command paths help prevent abuse through PATH manipulation.

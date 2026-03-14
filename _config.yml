@@ -1,0 +1,8 @@
+title: Zero Trust & Identity Lab
+description: Beginner-friendly 2-hour lab on zero trust and identity concepts
+theme: minima
+markdown: kramdown
+kramdown:
+  input: GFM
+plugins:
+  - jekyll-feed

@@ -1,0 +1,19 @@
+{
+  "tagOwners": {
+    "tag:app-server": ["admin@example.com"]
+  },
+  "acls": [
+    {
+      "action": "accept",
+      "src": ["junior.admin@example.com"],
+      "dst": ["tag:app-server:8080"]
+    }
+  ],
+  "tests": [
+    {
+      "src": "junior.admin@example.com",
+      "accept": ["tag:app-server:8080"],
+      "deny": ["tag:app-server:22", "tag:app-server:443"]
+    }
+  ]
+}
