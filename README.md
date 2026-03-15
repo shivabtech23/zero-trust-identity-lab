@@ -34,6 +34,20 @@ This lab is for beginners in security, IT, platform engineering, and help desk o
 - [Linux sudoers example](./resources/junior-admin.sudoers)
 - [Sample auth log](./resources/sample-auth.log)
 
+## Screenshots
+
+### Landing Page Overview
+
+![Landing page overview](./assets/images/homepage-overview.png)
+
+### Lab Guide Overview
+
+![Lab guide overview](./assets/images/lab-guide-overview.png)
+
+### Trust-Boundary Architecture Section
+
+![Trust-boundary architecture section](./assets/images/trust-boundary-architecture.png)
+
 ## Suggested 2-Hour Agenda
 
 | Section | Topic | Time |
