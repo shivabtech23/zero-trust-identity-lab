@@ -6,14 +6,6 @@ permalink: /lab-guide.html
 
 # Zero Trust & Identity Lab Guide
 
-## Learning Objectives
-
-After completing this lab, you should be able to:
-- Explain how Zero Trust differs from perimeter security
-- Implement identity-based access control using Tailscale ACLs
-- Enforce least privilege with Linux sudoers policies
-- Use an LLM to summarize and investigate authentication logs
-
 ## Lab Overview
 
 This lab introduces zero trust using identity as the primary control point. The examples align conceptually with NIST SP 800-207:
