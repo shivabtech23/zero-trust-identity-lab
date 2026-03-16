@@ -15,6 +15,15 @@ By the end of this lab, learners will be able to:
 - Use an LLM as a security co-pilot to summarize and investigate `auth.log` entries safely.
 - Answer basic review questions that reinforce zero trust decisions.
 
+## Lab Milestones
+
+This lab guides the learner through four required milestones:
+
+- Identity-centric connectivity using Tailscale identities instead of broad IP-based trust
+- Micro-segmentation by allowing only port `8080` to a specific destination
+- Least privilege by creating a `Junior Admin` role that can restart one service but cannot read sensitive files
+- Generative AI integration by using an LLM as a security co-pilot for `auth.log` review
+
 ## Prerequisites
 
 - Basic familiarity with Linux commands such as `cat`, `sudo`, and `systemctl`

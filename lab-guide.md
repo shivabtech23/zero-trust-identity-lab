@@ -28,6 +28,19 @@ You will work through three practical examples:
 2. A narrowly scoped Linux `sudoers` policy
 3. An LLM-assisted review of `auth.log`
 
+## Scenario
+
+You are designing and validating a hands-on lab for a Junior Security Analyst. The goal is to show the shift from traditional perimeter trust to Zero Trust Architecture by using identity-aware connectivity, narrow authorization, and continuous log review.
+
+## Milestones
+
+By the end of the lab, the learner should have completed these four milestones:
+
+1. Identity-centric connectivity: move from IP-based assumptions to identity-based access.
+2. Micro-segmentation: allow only a specific service on port `8080` while blocking other lateral movement.
+3. Principle of least privilege: configure a `Junior Admin` role that can restart one service but cannot read sensitive files.
+4. Generative AI integration: use an LLM to summarize and investigate `auth.log` activity and explain likely violations.
+
 ## Estimated Time
 
 About 2 hours total.
@@ -72,6 +85,8 @@ Zero trust designs depend on understanding where trust changes. In this small la
 ### Trust-Boundary Diagram
 
 If your local Jekyll preview does not render Mermaid, use the fallback image directly below the code block. Both versions show the same trust-boundary idea: identity is verified first, access is narrowed by policy, and sensitive files remain behind a separate privilege boundary.
+
+Tip: If you are teaching this lab live, walk through the diagram before any commands. Beginners usually understand the later ACL and `sudoers` steps more quickly once they can point to the trust boundaries.
 
 ## Lab Architecture
 
@@ -151,6 +166,21 @@ This is a direct expression of least privilege:
 4. Ask whether this rule should depend on group membership instead of an individual user as the environment grows.
 5. Consider device posture or approval workflows as future controls, but keep this lab focused on identity and port restriction.
 
+### Identity Setup with SSO/OIDC
+
+Before you test the ACL, sign in to Tailscale with an identity provider such as GitHub or Google. This matters because the policy is not based on IP address alone. It is based on who the user is, which is a core Zero Trust idea from NIST SP 800-207.
+
+If you are using a fresh test environment:
+
+1. Create or use a Tailscale account backed by GitHub or Google SSO.
+2. Sign in to the Tailscale client on the learner device with that identity.
+3. Confirm that the signed-in user matches the identity referenced in the ACL, such as `junior.admin@example.com`.
+4. Confirm that the destination server is also connected to the same tailnet and tagged as `tag:app-server`.
+
+Interpretation: once the learner and the destination server are both in the tailnet, access decisions can be made by identity and policy rather than by network location alone.
+
+Tip: If your test identity name does not exactly match `junior.admin@example.com`, update the sample ACL before testing. A mismatch here will look like a policy failure even when the tailnet is working correctly.
+
 ### Hands-On Steps
 
 In the commands below, `app-server` refers to the destination host or tagged device used in the ACL example, as shown by `tag:app-server:8080` in the policy file. The exact commands depend on your test environment, but the pattern below is what you should verify.
@@ -223,6 +253,8 @@ Connection failed or access denied
 ```
 
 These checks verify both identity-based access control and micro-segmentation: the right user can reach the right service on the right port, and nothing broader is implied.
+
+Tip: The important signal is not the exact error string. The important signal is that the unauthorized port or identity does not get application access.
 
 ### Explicit Allow/Deny Verification
 
@@ -298,6 +330,8 @@ Expected result:
 ```
 
 Interpretation: you now have a dedicated role, a harmless service to manage, and a validated `sudoers` policy that permits only one specific administrative action.
+
+Tip: Always validate `sudoers` syntax with `visudo -cf` before enabling a new policy. A syntax mistake in `sudoers` can lock you out of administrative access.
 
 #### Step 2: Test the one action that should be allowed
 
@@ -429,6 +463,8 @@ Open [resources/sample-auth.log]({{ '/resources/sample-auth.log' | relative_url 
 3. Ask the model for summary, timeline, anomalies, and confidence levels.
 4. Cross-check the model's output against the original log lines.
 5. Record the final analyst conclusion yourself.
+
+Tip: Treat the LLM as an analyst assistant, not as the final authority. It can speed up triage, but you still need to verify the conclusion against the raw log evidence.
 
 ### Hands-On Steps
 
