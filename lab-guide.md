@@ -153,9 +153,11 @@ This is a direct expression of least privilege:
 
 ### Hands-On Steps
 
-The exact commands depend on your test environment, but the pattern below is what you should verify.
+In the commands below, `app-server` refers to the destination host or tagged device used in the ACL example, as shown by `tag:app-server:8080` in the policy file. The exact commands depend on your test environment, but the pattern below is what you should verify.
 
-1. Open the policy file and review the allow rule:
+#### Step 1: Open the policy file and review the allow rule
+
+Start by confirming which identity is allowed and which destination and port are in scope.
 
 ```bash
 cat resources/tailscale-acl-example.json
@@ -168,7 +170,9 @@ Expected result:
 "dst": ["tag:app-server:8080"]
 ```
 
-2. On the destination host, confirm your demo app is listening on port `8080`:
+#### Step 2: Confirm the demo app is listening on port `8080`
+
+This checks that the destination host is actually serving the application on the same port the ACL allows.
 
 ```bash
 ss -tulpn | grep 8080
@@ -180,7 +184,9 @@ Expected result:
 LISTEN 0 128 0.0.0.0:8080 ...
 ```
 
-3. From the allowed identity's device, test the allowed path:
+#### Step 3: Test the allowed access path
+
+Run this from the device signed in as the allowed identity to verify that the permitted application path works.
 
 ```bash
 curl -I http://app-server:8080
@@ -192,7 +198,9 @@ Expected result:
 HTTP/1.1 200 OK
 ```
 
-4. From the same device, test a denied path such as SSH on port `22`:
+#### Step 4: Test a denied access path such as SSH on port `22`
+
+Use the same identity and destination, but change the port to something not included in the ACL.
 
 ```bash
 nc -vz app-server 22
@@ -204,13 +212,17 @@ Expected result:
 nc: connectx to app-server port 22 ... failed: Operation timed out
 ```
 
-5. If you have a second identity that is not listed in the ACL, repeat the port `8080` test from that user context.
+#### Step 5: Optionally test access from an unlisted identity
+
+If you have a second user that is not included in the policy, retry the allowed application port from that identity to confirm it is blocked.
 
 Expected result:
 
 ```text
 Connection failed or access denied
 ```
+
+These checks verify both identity-based access control and micro-segmentation: the right user can reach the right service on the right port, and nothing broader is implied.
 
 ### Explicit Allow/Deny Verification
 
@@ -236,6 +248,8 @@ This is a small but concrete zero trust policy: identity plus destination plus p
 
 Zero trust is not only about network access. It also applies inside the host. A junior operator may need to restart a service without being able to read secrets or gain full administrative control.
 
+The goal of this exercise is to create a restricted operational role that can restart one service, but cannot read sensitive files or gain full root privileges. This is a practical example of least privilege inside the server, not just at the network edge.
+
 Open [resources/junior-admin.sudoers]({{ '/resources/junior-admin.sudoers' | relative_url }}).
 
 ### Example Goal
@@ -251,9 +265,11 @@ Permit members of the `junioradmin` group to restart exactly one service, `demo-
 5. Validate that users in the role cannot run `sudo cat /etc/shadow`.
 6. Validate that users in the role cannot run arbitrary shell commands through `sudo`.
 
-### Hands-On Setup
+### Hands-On Tutorial
 
-If you are using a disposable Linux VM, create a harmless demo service first:
+#### Step 1: Create a restricted operational role
+
+This step creates a dedicated group and user for a junior administrator. In Zero Trust, administrative access should be role-based and limited to the minimum task required, rather than granted through broad root access.
 
 ```bash
 sudo groupadd junioradmin
@@ -281,9 +297,11 @@ Expected result:
 /etc/sudoers.d/junior-admin: parsed OK
 ```
 
-### Allow Test
+Interpretation: you now have a dedicated role, a harmless service to manage, and a validated `sudoers` policy that permits only one specific administrative action.
 
-Switch to the junior admin account and run the one approved command:
+#### Step 2: Test the one action that should be allowed
+
+Now switch into the restricted role and run the exact command the policy is designed to allow. This proves that the user can perform the operational task they need without being made a general administrator.
 
 ```bash
 su - junioradmin
@@ -295,6 +313,12 @@ Expected result:
 ```text
 <no error output>
 ```
+
+Interpretation: the lack of an error means the policy allowed the exact restart action defined in the `Cmnd_Alias`.
+
+#### Step 3: Verify the service is still running
+
+After a successful restart, confirm that the target service is healthy. This is the operational proof that least privilege still allows the intended business task to complete.
 
 Confirm the service is healthy:
 
@@ -308,7 +332,11 @@ Expected result:
 Active: active (running)
 ```
 
-### Deny Tests
+Interpretation: the service restarted successfully, so the restricted role is useful without being over-privileged.
+
+#### Step 4: Prove that sensitive file access is denied
+
+Least privilege is only meaningful if forbidden actions are actually blocked. This test checks that the junior admin role cannot use `sudo` to read a sensitive system file.
 
 The same role should fail when attempting to read sensitive files:
 
@@ -322,6 +350,12 @@ Expected result:
 Sorry, user junioradmin is not allowed to execute '/bin/cat /etc/shadow' as root ...
 ```
 
+Interpretation: the account is authenticated, but it is not trusted with unrestricted root-level file access.
+
+#### Step 5: Prove that full root access is denied
+
+The next test confirms that the role cannot escape the policy by opening a root shell. In Zero Trust terms, the user is allowed one approved operation, not broad administrative authority.
+
 It should also fail for a root shell:
 
 ```bash
@@ -333,6 +367,8 @@ Expected result:
 ```text
 Sorry, user junioradmin is not allowed to execute '/bin/zsh' as root ...
 ```
+
+Interpretation: the policy prevents privilege expansion beyond the single approved command.
 
 ### Explicit Allow/Deny Verification
 
@@ -356,6 +392,8 @@ If you have a lab VM:
 2. Replace `demo-app.service` with the test service name if needed.
 3. Use `visudo -cf /etc/sudoers.d/junior-admin` to validate syntax before enabling the rule.
 4. Test both allowed and denied commands.
+
+By completing the allow and deny tests, you have shown that the role can do one specific operational job and nothing more. That is the key result of this section: the system trusts the action defined by policy, not the user with blanket root privileges.
 
 ### Check Your Understanding
 
